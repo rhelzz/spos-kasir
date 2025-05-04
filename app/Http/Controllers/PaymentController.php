@@ -2,12 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\Order;
 use App\Models\Payment;
-use Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\RedirectResponse;
 
 class PaymentController extends Controller
 {
@@ -16,7 +17,7 @@ class PaymentController extends Controller
         $this->middleware('role:owner,cashier');
     }
 
-    public function create(Order $order): View
+    public function create(Order $order): View|RedirectResponse
     {
         if ($order->status === 'cancelled') {
             return redirect()->route('orders.show', $order)->with('error', 'Cannot process payment for a cancelled order.');
@@ -55,7 +56,7 @@ class PaymentController extends Controller
                 'amount_paid' => $validated['amount_paid'],
                 'change_amount' => $validated['amount_paid'] - $order->total_amount,
                 'transaction_id' => $validated['transaction_id'] ?? null,
-                'user_id' => auth()->id(),
+                'user_id' => Auth::id(),
                 'notes' => $validated['notes'] ?? null,
             ]);
 

@@ -12,6 +12,7 @@ use App\Models\Tax;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
+use Illuminate\Support\Facades\Auth;
 
 class OrderController extends Controller
 {
@@ -80,7 +81,7 @@ class OrderController extends Controller
             $order = Order::create([
                 'order_type' => $validated['order_type'],
                 'table_id' => $validated['order_type'] === 'dine_in' ? $validated['table_id'] : null,
-                'user_id' => auth()->id(),
+                'user_id' => Auth::id(),
                 'tax_id' => $validated['tax_id'] ?? null,
                 'discount_id' => $validated['discount_id'] ?? null,
                 'service_charge' => $validated['service_charge'] ?? 0,
@@ -126,7 +127,7 @@ class OrderController extends Controller
         return view('orders.show', compact('order'));
     }
 
-    public function edit(Order $order): View
+    public function edit(Order $order): View|RedirectResponse
     {
         if ($order->status !== 'pending') {
             return redirect()->route('orders.show', $order)->with('error', 'Only pending orders can be edited.');
