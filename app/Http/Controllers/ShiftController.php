@@ -2,26 +2,27 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use App\Models\Shift;
-use App\Models\Order;
-use App\Models\Payment;
-use Illuminate\Http\RedirectResponse;
-use Illuminate\View\View;
-use Illuminate\Routing\Controller;
 use Carbon\Carbon;
+use App\Models\Order;
+use App\Models\Shift;
+use App\Models\Payment;
+use Illuminate\View\View;
+use Illuminate\Http\Request;
+use Illuminate\Routing\Controller;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\RedirectResponse;
 
 class ShiftController extends Controller
 {
     public function index(): View
     {
         // Ambil shift untuk user saat ini
-        $shifts = Shift::where('user_id', auth()->id())
+        $shifts = Shift::where('user_id', Auth::id())
                       ->orderBy('created_at', 'desc')
                       ->paginate(10);
                       
         // Cek apakah user memiliki shift yang sedang aktif
-        $activeShift = Shift::where('user_id', auth()->id())
+        $activeShift = Shift::where('user_id', Auth::id())
                            ->whereNull('end_time')
                            ->first();
                            
@@ -31,7 +32,7 @@ class ShiftController extends Controller
     public function openShift(Request $request): RedirectResponse
     {
         // Cek apakah user sudah memiliki shift aktif
-        $activeShift = Shift::where('user_id', auth()->id())
+        $activeShift = Shift::where('user_id', Auth::id())
                           ->whereNull('end_time')
                           ->first();
                           
@@ -45,7 +46,7 @@ class ShiftController extends Controller
         ]);
         
         $shift = Shift::create([
-            'user_id' => auth()->id(),
+            'user_id' => Auth::id(),
             'start_time' => Carbon::now(),
             'opening_cash' => $validated['opening_cash'],
             'notes' => $validated['notes'] ?? null,
@@ -57,7 +58,7 @@ class ShiftController extends Controller
     public function closeShift(Request $request): RedirectResponse
     {
         // Cek apakah user memiliki shift aktif
-        $activeShift = Shift::where('user_id', auth()->id())
+        $activeShift = Shift::where('user_id', Auth::id())
                           ->whereNull('end_time')
                           ->first();
                           
@@ -72,14 +73,14 @@ class ShiftController extends Controller
         
         // Hitung total penjualan selama shift
         $shiftSales = Payment::whereHas('order', function($query) use ($activeShift) {
-                        $query->where('user_id', auth()->id())
+                        $query->where('user_id', Auth::id())
                               ->where('status', 'completed')
                               ->where('created_at', '>=', $activeShift->start_time);
                     })
                     ->sum('amount_paid');
                     
         // Hitung jumlah pesanan selama shift
-        $orderCount = Order::where('user_id', auth()->id())
+        $orderCount = Order::where('user_id', Auth::id())
                           ->where('created_at', '>=', $activeShift->start_time)
                           ->count();
                           

@@ -7,7 +7,6 @@ use App\Http\Controllers\InventoryItemController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProductController;
-use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\TableController;
 use App\Http\Controllers\TaxController;
 use App\Http\Controllers\UserController;
@@ -28,18 +27,13 @@ use Illuminate\Support\Facades\Route;
 
 // Rute publik
 Route::get('/', function () {
-    return redirect()->route('login');
+    return view('welcome');
 });
 
 // Rute autentikasi
 Route::middleware('auth')->group(function () {
     // Dashboard
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-
-    // Profil
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
     // Kategori
     Route::get('/categories', [CategoryController::class, 'index'])->name('categories.index');
@@ -168,6 +162,3 @@ Route::middleware('auth')->group(function () {
         Route::get('/shifts/{shift}', [ShiftController::class, 'show'])->name('shifts.show');
     });
 });
-
-// Rute ini perlu didaftarkan jika Anda menggunakan scaffolding autentikasi Laravel
-require __DIR__.'/auth.php';
