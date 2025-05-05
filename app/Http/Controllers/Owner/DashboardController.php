@@ -78,6 +78,7 @@ class DashboardController extends Controller
         $tableStatus = [
             'available' => Table::where('status', 'available')->count(),
             'occupied' => Table::where('status', 'occupied')->count(),
+            'reserved' => Table::where('status', 'reserved')->count(),
             'needs_cleaning' => Table::where('status', 'needs_cleaning')->count(),
         ];
             

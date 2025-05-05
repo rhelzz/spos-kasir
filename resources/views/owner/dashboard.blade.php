@@ -222,6 +222,7 @@
                                             <div class="flex justify-between text-sm">
                                                 <span class="text-green-600">{{ $tableStatus['available'] ?? 0 }} Tersedia</span>
                                                 <span class="text-blue-600">{{ $tableStatus['occupied'] ?? 0 }} Terisi</span>
+                                                <span class="text-red-600">{{ $tableStatus['reserved'] ?? 0 }} Di Order</span>
                                                 <span class="text-orange-600">{{ $tableStatus['needs_cleaning'] ?? 0 }} Perlu Dibersihkan</span>
                                             </div>
                                         </dd>
