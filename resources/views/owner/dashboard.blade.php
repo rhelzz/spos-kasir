@@ -6,7 +6,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ config('app.name', 'SPOS Kasir') }} - Dashboard Owner</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
 </head>
 <body class="bg-gray-100 font-sans antialiased">
     <div class="min-h-screen">
@@ -24,7 +24,7 @@
                                 <a href="{{ route('products.index') }}" class="text-white hover:bg-indigo-500 hover:bg-opacity-75 px-3 py-2 rounded-md text-sm font-medium">Produk</a>
                                 <a href="{{ route('categories.index') }}" class="text-white hover:bg-indigo-500 hover:bg-opacity-75 px-3 py-2 rounded-md text-sm font-medium">Kategori</a>
                                 <a href="{{ route('users.index') }}" class="text-white hover:bg-indigo-500 hover:bg-opacity-75 px-3 py-2 rounded-md text-sm font-medium">Pengguna</a>
-                                <a href="{{ route('reports.sales') }}" class="text-white hover:bg-indigo-500 hover:bg-opacity-75 px-3 py-2 rounded-md text-sm font-medium">Laporan</a>
+                                <a href="{{ route('reports.index') }}" class="text-white hover:bg-indigo-500 hover:bg-opacity-75 px-3 py-2 rounded-md text-sm font-medium">Laporan</a>
                             </div>
                         </div>
                     </div>
@@ -35,14 +35,14 @@
                                     <button type="button" class="max-w-xs bg-indigo-600 rounded-full flex items-center text-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-indigo-600 focus:ring-white" id="user-menu-button" aria-expanded="false" aria-haspopup="true">
                                         <span class="sr-only">Open user menu</span>
                                         <span class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-indigo-700">
-                                            <span class="text-sm font-medium leading-none text-white">{{ substr(Auth::user()->name, 0, 1) }}</span>
+                                            <span class="text-sm font-medium leading-none text-white">{{ substr(Auth::user()->name ?? 'U', 0, 1) }}</span>
                                         </span>
                                     </button>
                                 </div>
                                 <div class="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5 focus:outline-none hidden" role="menu" aria-orientation="vertical" aria-labelledby="user-menu-button" id="user-menu">
-                                    <span class="block px-4 py-2 text-sm text-gray-700">{{ Auth::user()->name }}</span>
-                                    <span class="block px-4 py-2 text-xs text-gray-500">{{ ucfirst(Auth::user()->role) }}</span>
-                                    <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem">Profil Saya</a>
+                                    <span class="block px-4 py-2 text-sm text-gray-700">{{ Auth::user()->name ?? 'User' }}</span>
+                                    <span class="block px-4 py-2 text-xs text-gray-500">{{ ucfirst(Auth::user()->role ?? 'user') }}</span>
+                                    <a href="{{ route('profile.edit') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem">Profil Saya</a>
                                     <form method="POST" action="{{ route('logout') }}">
                                         @csrf
                                         <button type="submit" class="w-full text-left block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem">Logout</button>
@@ -68,22 +68,22 @@
                     <a href="{{ route('products.index') }}" class="text-white hover:bg-indigo-500 hover:bg-opacity-75 block px-3 py-2 rounded-md text-base font-medium">Produk</a>
                     <a href="{{ route('categories.index') }}" class="text-white hover:bg-indigo-500 hover:bg-opacity-75 block px-3 py-2 rounded-md text-base font-medium">Kategori</a>
                     <a href="{{ route('users.index') }}" class="text-white hover:bg-indigo-500 hover:bg-opacity-75 block px-3 py-2 rounded-md text-base font-medium">Pengguna</a>
-                    <a href="{{ route('reports.sales') }}" class="text-white hover:bg-indigo-500 hover:bg-opacity-75 block px-3 py-2 rounded-md text-base font-medium">Laporan</a>
+                    <a href="{{ route('reports.index') }}" class="text-white hover:bg-indigo-500 hover:bg-opacity-75 block px-3 py-2 rounded-md text-base font-medium">Laporan</a>
                 </div>
                 <div class="pt-4 pb-3 border-t border-indigo-700">
                     <div class="flex items-center px-5">
                         <div class="flex-shrink-0">
                             <span class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-indigo-700">
-                                <span class="text-sm font-medium leading-none text-white">{{ substr(Auth::user()->name, 0, 1) }}</span>
+                                <span class="text-sm font-medium leading-none text-white">{{ substr(Auth::user()->name ?? 'U', 0, 1) }}</span>
                             </span>
                         </div>
                         <div class="ml-3">
-                            <div class="text-base font-medium text-white">{{ Auth::user()->name }}</div>
-                            <div class="text-sm font-medium text-indigo-300">{{ Auth::user()->email }}</div>
+                            <div class="text-base font-medium text-white">{{ Auth::user()->name ?? 'User' }}</div>
+                            <div class="text-sm font-medium text-indigo-300">{{ Auth::user()->email ?? 'No email' }}</div>
                         </div>
                     </div>
                     <div class="mt-3 px-2 space-y-1">
-                        <a href="#" class="block px-3 py-2 rounded-md text-base font-medium text-white hover:bg-indigo-500 hover:bg-opacity-75">Profil Saya</a>
+                        <a href="{{ route('profile.edit') }}" class="block px-3 py-2 rounded-md text-base font-medium text-white hover:bg-indigo-500 hover:bg-opacity-75">Profil Saya</a>
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
                             <button type="submit" class="w-full text-left block px-3 py-2 rounded-md text-base font-medium text-white hover:bg-indigo-500 hover:bg-opacity-75">Logout</button>
@@ -102,7 +102,7 @@
 
                 <!-- Stats cards -->
                 <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 mb-6">
-                    <!-- Card 1 -->
+                    <!-- Card 1: Total Sales -->
                     <div class="bg-white overflow-hidden shadow rounded-lg">
                         <div class="p-5">
                             <div class="flex items-center">
@@ -121,13 +121,18 @@
                                                 Rp {{ number_format($totalSales ?? 0, 0, ',', '.') }}
                                             </div>
                                         </dd>
+                                        <dd>
+                                            <div class="text-sm text-gray-600">
+                                                Hari ini: Rp {{ number_format($dailySales ?? 0, 0, ',', '.') }}
+                                            </div>
+                                        </dd>
                                     </dl>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Card 2 -->
+                    <!-- Card 2: Total Products -->
                     <div class="bg-white overflow-hidden shadow rounded-lg">
                         <div class="p-5">
                             <div class="flex items-center">
@@ -146,13 +151,18 @@
                                                 {{ $totalProducts ?? 0 }}
                                             </div>
                                         </dd>
+                                        <dd>
+                                            <div class="text-sm text-gray-600">
+                                                Stok Menipis: {{ $lowStockProducts->count() ?? 0 }}
+                                            </div>
+                                        </dd>
                                     </dl>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Card 3 -->
+                    <!-- Card 3: Total Users -->
                     <div class="bg-white overflow-hidden shadow rounded-lg">
                         <div class="p-5">
                             <div class="flex items-center">
@@ -170,6 +180,17 @@
                                             <div class="text-lg font-bold text-gray-900">
                                                 {{ $totalUsers ?? 0 }}
                                             </div>
+                                        </dd>
+                                        <dd>
+                                            <span class="text-xs bg-indigo-100 text-indigo-800 rounded-full px-2 py-0.5">
+                                                Admin: {{ isset($userStats['owner']) ? $userStats['owner'] : 0 }}
+                                            </span>
+                                            <span class="text-xs bg-emerald-100 text-emerald-800 rounded-full px-2 py-0.5">
+                                                Kasir: {{ isset($userStats['cashier']) ? $userStats['cashier'] : 0 }}
+                                            </span>
+                                            <span class="text-xs bg-purple-100 text-purple-800 rounded-full px-2 py-0.5">
+                                                Inventori: {{ isset($userStats['inventory']) ? $userStats['inventory'] : 0 }}
+                                            </span>
                                         </dd>
                                     </dl>
                                 </div>
@@ -208,15 +229,18 @@
                                         <div class="flex items-center justify-between">
                                             <div>
                                                 <p class="text-sm font-medium text-indigo-600 truncate">
-                                                    #{{ $order->id }} - {{ $order->user->name }}
+                                                    #{{ $order->id ?? 'N/A' }} - {{ $order->user?->name ?? 'N/A' }}
                                                 </p>
                                                 <p class="text-sm text-gray-500">
-                                                    {{ $order->created_at->format('d M Y H:i') }}
+                                                    {{ isset($order->created_at) ? $order->created_at->format('d M Y H:i') : 'N/A' }}
                                                 </p>
                                             </div>
                                             <div>
-                                                <span class="inline-flex px-2 text-xs font-semibold leading-5 bg-green-100 text-green-800 rounded-full">
-                                                    Rp {{ number_format($order->total_amount, 0, ',', '.') }}
+                                                <span class="inline-flex px-2 text-xs font-semibold leading-5 {{ isset($order->status) && $order->status == 'completed' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800' }} rounded-full">
+                                                    {{ isset($order->status) && $order->status == 'completed' ? 'Selesai' : 'Pending' }}
+                                                </span>
+                                                <span class="block text-sm font-medium text-gray-900 text-right mt-1">
+                                                    Rp {{ number_format($order->total_amount ?? 0, 0, ',', '.') }}
                                                 </span>
                                             </div>
                                         </div>
@@ -227,6 +251,101 @@
                                     </li>
                                 @endforelse
                             </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Top Products and Low Stock Items -->
+                <div class="mt-6 grid grid-cols-1 gap-5 lg:grid-cols-2">
+                    <!-- Top Products -->
+                    <div class="bg-white overflow-hidden shadow rounded-lg">
+                        <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
+                            <h3 class="text-lg leading-6 font-medium text-gray-900">
+                                Produk Terlaris
+                            </h3>
+                        </div>
+                        <div class="p-6">
+                            <div class="overflow-hidden">
+                                <table class="min-w-full divide-y divide-gray-200">
+                                    <thead class="bg-gray-50">
+                                        <tr>
+                                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Produk</th>
+                                            <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Terjual</th>
+                                            <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Pendapatan</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="bg-white divide-y divide-gray-200">
+                                        @forelse($topProducts ?? [] as $product)
+                                            <tr>
+                                                <td class="px-6 py-4 whitespace-nowrap">
+                                                    <div class="text-sm font-medium text-gray-900">
+                                                        {{ $product->name ?? 'N/A' }}
+                                                    </div>
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-500">
+                                                    {{ $product->total_quantity ?? 0 }}
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-900">
+                                                    Rp {{ number_format($product->total_amount ?? 0, 0, ',', '.') }}
+                                                </td>
+                                            </tr>
+                                        @empty
+                                            <tr>
+                                                <td colspan="3" class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500">
+                                                    Tidak ada data produk terlaris
+                                                </td>
+                                            </tr>
+                                        @endforelse
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Low Stock Products -->
+                    <div class="bg-white overflow-hidden shadow rounded-lg">
+                        <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
+                            <h3 class="text-lg leading-6 font-medium text-gray-900">
+                                Produk Stok Menipis
+                            </h3>
+                        </div>
+                        <div class="p-6">
+                            <div class="overflow-hidden">
+                                <table class="min-w-full divide-y divide-gray-200">
+                                    <thead class="bg-gray-50">
+                                        <tr>
+                                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Produk</th>
+                                            <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Stok</th>
+                                            <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Minimal</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="bg-white divide-y divide-gray-200">
+                                        @forelse($lowStockProducts ?? [] as $product)
+                                            <tr>
+                                                <td class="px-6 py-4 whitespace-nowrap">
+                                                    <div class="text-sm font-medium text-gray-900">
+                                                        {{ $product->name ?? 'N/A' }}
+                                                    </div>
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap text-right">
+                                                    <span class="inline-flex px-2 text-xs font-semibold leading-5 bg-red-100 text-red-800 rounded-full">
+                                                        {{ $product->stock ?? 0 }}
+                                                    </span>
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-500">
+                                                    {{ $product->min_stock ?? 0 }}
+                                                </td>
+                                            </tr>
+                                        @empty
+                                            <tr>
+                                                <td colspan="3" class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500">
+                                                    Tidak ada produk dengan stok menipis
+                                                </td>
+                                            </tr>
+                                        @endforelse
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -246,8 +365,8 @@
                             <a href="{{ route('reports.inventory') }}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                                 Laporan Inventori
                             </a>
-                            <a href="{{ route('users.index') }}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
-                                Kelola Pengguna
+                            <a href="{{ route('users.create') }}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                                Tambah Pengguna
                             </a>
                             <a href="{{ route('products.create') }}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500">
                                 Tambah Produk
@@ -285,25 +404,16 @@
             const ctx = document.getElementById('monthlySalesChart').getContext('2d');
             const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
             
-            // Sample data - replace with actual data from your controller
-            const monthlySalesData = @json($monthlySales ?? []);
+            // Get the monthly chart data from the controller
+            const monthlyData = @json($monthlyChartData ?? []);
             
-            const labels = monthNames;
-            const data = Array(12).fill(0);
-            
-            // Update with actual data if available
-            if (monthlySalesData.length) {
-                monthlySalesData.forEach(item => {
-                    if (item.month >= 1 && item.month <= 12) {
-                        data[item.month - 1] = item.total;
-                    }
-                });
-            }
+            // Format data for Chart.js
+            const data = Object.values(monthlyData);
             
             new Chart(ctx, {
                 type: 'bar',
                 data: {
-                    labels: labels,
+                    labels: monthNames,
                     datasets: [{
                         label: 'Penjualan (Rp)',
                         data: data,
@@ -317,7 +427,21 @@
                     maintainAspectRatio: false,
                     scales: {
                         y: {
-                            beginAtZero: true
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return 'Rp ' + value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+                                }
+                            }
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return 'Rp ' + context.raw.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+                                }
+                            }
                         }
                     }
                 }
