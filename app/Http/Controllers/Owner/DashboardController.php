@@ -7,6 +7,11 @@ use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\Product;
 use App\Models\Order;
+use App\Models\Payment;
+use App\Models\Category;
+use App\Models\Shift;
+use App\Models\InventoryItem;
+use App\Models\Table;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
@@ -19,8 +24,11 @@ class DashboardController extends Controller
     
     public function index()
     {
-        // Get today's date and current month/year
+        // Get time periods for filtering
         $today = Carbon::today();
+        $yesterday = Carbon::yesterday();
+        $startOfWeek = Carbon::now()->startOfWeek();
+        $endOfWeek = Carbon::now()->endOfWeek();
         $startOfMonth = Carbon::now()->startOfMonth();
         $endOfMonth = Carbon::now()->endOfMonth();
         
@@ -33,21 +41,45 @@ class DashboardController extends Controller
             ->whereDate('created_at', $today)
             ->sum('total_amount');
             
+        $yesterdaySales = Order::where('status', 'completed')
+            ->whereDate('created_at', $yesterday)
+            ->sum('total_amount');
+            
+        // Calculate growth percentage
+        $salesGrowth = 0;
+        if ($yesterdaySales > 0) {
+            $salesGrowth = (($dailySales - $yesterdaySales) / $yesterdaySales) * 100;
+        }
+        
+        // Count statistics
         $totalProducts = Product::count();
+        $activeProducts = Product::where('is_active', true)->count();
+        $totalCategories = Category::count();
+        $totalTables = Table::count();
         $totalUsers = User::count();
         
-        // Low stock products
-        $lowStockProducts = Product::whereRaw('stock <= min_stock')
-            ->where('stock', '>', 0)
-            ->orderBy('stock')
-            ->take(5)
-            ->get();
+        // Low inventory items (using the isLowStock method from the model)
+        $lowStockItems = InventoryItem::get()->filter(function($item) {
+            return $item->isLowStock();
+        })->take(5);
             
-        // Recent orders
-        $recentOrders = Order::with(['user', 'items.product'])
+        // Recent orders with relationships
+        $recentOrders = Order::with(['user', 'items.product', 'table', 'payment'])
             ->orderBy('created_at', 'desc')
             ->take(5)
             ->get();
+            
+        // Current active shifts
+        $activeShifts = Shift::whereNull('end_time')
+            ->with('user')
+            ->get();
+            
+        // Table status summary
+        $tableStatus = [
+            'available' => Table::where('status', 'available')->count(),
+            'occupied' => Table::where('status', 'occupied')->count(),
+            'needs_cleaning' => Table::where('status', 'needs_cleaning')->count(),
+        ];
             
         // Monthly sales chart data
         $monthlySalesData = Order::where('status', 'completed')
@@ -71,22 +103,52 @@ class DashboardController extends Controller
             $monthlyChartData[$i] = $monthlySalesData[$i] ?? 0;
         }
         
-        // Top selling products
+        // Top selling products (by quantity)
         $topProducts = DB::table('order_items')
             ->join('products', 'order_items.product_id', '=', 'products.id')
             ->join('orders', 'order_items.order_id', '=', 'orders.id')
             ->select(
                 'products.id',
                 'products.name',
+                'products.category_id',
                 DB::raw('SUM(order_items.quantity) as total_quantity'),
                 DB::raw('SUM(order_items.subtotal) as total_amount')
             )
             ->where('orders.status', 'completed')
-            ->groupBy('products.id', 'products.name')
+            ->groupBy('products.id', 'products.name', 'products.category_id')
             ->orderBy('total_quantity', 'desc')
             ->take(5)
             ->get();
             
+        // Get category names for the top products
+        foreach ($topProducts as $product) {
+            $category = Category::find($product->category_id);
+            $product->category_name = $category ? $category->name : 'Uncategorized';
+        }
+        
+        // Payment method distribution
+        $paymentMethods = Payment::where('status', 'completed')
+            ->select('payment_method', DB::raw('COUNT(*) as count'), DB::raw('SUM(amount_paid) as total'))
+            ->groupBy('payment_method')
+            ->get();
+            
+        // Category distribution for sold products
+        $categorySales = DB::table('order_items')
+            ->join('products', 'order_items.product_id', '=', 'products.id')
+            ->join('categories', 'products.category_id', '=', 'categories.id')
+            ->join('orders', 'order_items.order_id', '=', 'orders.id')
+            ->where('orders.status', 'completed')
+            ->select(
+                'categories.id',
+                'categories.name',
+                DB::raw('SUM(order_items.quantity) as total_quantity'),
+                DB::raw('SUM(order_items.subtotal) as total_amount')
+            )
+            ->groupBy('categories.id', 'categories.name')
+            ->orderBy('total_amount', 'desc')
+            ->take(5)
+            ->get();
+        
         // User statistics 
         $userStats = User::select('role', DB::raw('count(*) as count'))
             ->groupBy('role')
@@ -94,16 +156,25 @@ class DashboardController extends Controller
             ->pluck('count', 'role')
             ->toArray();
         
-        return view('owner.dashboard', [
-            'totalSales' => $totalSales ?? 0,
-            'dailySales' => $dailySales ?? 0,
-            'totalProducts' => $totalProducts ?? 0,
-            'totalUsers' => $totalUsers ?? 0,
-            'userStats' => $userStats ?? ['owner' => 0, 'cashier' => 0, 'inventory' => 0],
-            'recentOrders' => $recentOrders ?? collect([]),
-            'topProducts' => $topProducts ?? collect([]),
-            'lowStockProducts' => $lowStockProducts ?? collect([]),
-            'monthlyChartData' => $monthlyChartData ?? [],
-        ]);
+        return view('owner.dashboard', compact(
+            'totalSales',
+            'monthlySales',
+            'dailySales',
+            'salesGrowth',
+            'totalProducts',
+            'activeProducts',
+            'totalCategories',
+            'totalTables',
+            'totalUsers',
+            'userStats',
+            'recentOrders',
+            'activeShifts',
+            'tableStatus',
+            'lowStockItems',
+            'topProducts',
+            'paymentMethods',
+            'categorySales',
+            'monthlyChartData'
+        ));
     }
 }
