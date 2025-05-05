@@ -12,6 +12,11 @@ use App\Http\Controllers\TaxController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\ShiftController;
+use App\Http\Controllers\Owner\DashboardController as OwnerDashboardController;
+use App\Http\Controllers\Cashier\DashboardController as CashierDashboardController;
+use App\Http\Controllers\Inventory\DashboardController as InventoryDashboardController;
+use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Auth\RegisterController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -28,6 +33,17 @@ use Illuminate\Support\Facades\Route;
 // Rute publik
 Route::get('/', function () {
     return view('welcome');
+});
+
+// Rute Autentikasi
+Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
+Route::post('/login', [LoginController::class, 'login']);
+Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
+
+// Rute Register (Jika perlu, biasanya hanya untuk owner/admin)
+Route::middleware(['role:owner'])->group(function() {
+    Route::get('/register', [RegisterController::class, 'showRegistrationForm'])->name('register');
+    Route::post('/register', [RegisterController::class, 'register']);
 });
 
 // Rute autentikasi
@@ -160,5 +176,20 @@ Route::middleware('auth')->group(function () {
         Route::post('/shifts/open', [ShiftController::class, 'openShift'])->name('shifts.open');
         Route::post('/shifts/close', [ShiftController::class, 'closeShift'])->name('shifts.close');
         Route::get('/shifts/{shift}', [ShiftController::class, 'show'])->name('shifts.show');
+    });
+
+    // Dashboard Owner
+    Route::middleware(['role:owner'])->group(function () {
+        Route::get('/owner/dashboard', [OwnerDashboardController::class, 'index'])->name('owner.dashboard');
+    });
+    
+    // Dashboard Cashier
+    Route::middleware(['role:cashier'])->group(function () {
+        Route::get('/cashier/dashboard', [CashierDashboardController::class, 'index'])->name('cashier.dashboard');
+    });
+    
+    // Dashboard Inventory
+    Route::middleware(['role:inventory'])->group(function () {
+        Route::get('/inventory/dashboard', [InventoryDashboardController::class, 'index'])->name('inventory.dashboard');
     });
 });
